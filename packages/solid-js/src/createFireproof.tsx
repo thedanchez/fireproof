@@ -191,9 +191,14 @@ export function createFireproof(dbOrName?: string | Database, config: ConfigOpts
 
     createEffect(() => {
       const db = database();
-      const unsubscribe = db.subscribe(() => void refreshRows(db));
+      console.log("subscribing");
+      const unsubscribe = db.subscribe(() => {
+        console.log("subscription event");
+        void refreshRows(db)
+      }, true);
 
       onCleanup(() => {
+        console.log("calling unsubscribe");
         unsubscribe();
       });
     });
