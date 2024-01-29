@@ -93,6 +93,7 @@ export class Database {
   }
 
   subscribe(listener: ListenerFn | NoUpdateListenerFn, updates?: boolean): () => void {
+    console.log('subscriber', updates)
     if (updates) {
       if (!this._listening) {
         this._listening = true
@@ -126,6 +127,7 @@ export class Database {
   }
 
   async _notify(updates: DocUpdate[]) {
+    console.log('notify', updates.length)
     if (this._listeners.size) {
       const docs: Doc[] = updates.map(({ key, value }) => ({ _id: key, ...value }))
       for (const listener of this._listeners) {
@@ -137,6 +139,7 @@ export class Database {
   }
 
   async _no_update_notify() {
+    console.log('no update notify')
     if (this._noupdate_listeners.size) {
       for (const listener of this._noupdate_listeners) {
         await (async () => await listener([]))().catch((e: Error) => {
