@@ -17,10 +17,7 @@ jobs:
           node-version: 20.10.0
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8.15.0
-          run_install: false
+        uses: pnpm/action-setup@v4
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts

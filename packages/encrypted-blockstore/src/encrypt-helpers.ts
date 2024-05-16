@@ -16,13 +16,13 @@ import { nocache as cache } from 'prolly-trees/cache'
 import { create, load } from 'prolly-trees/cid-set'
 
 import { encodeCarFile } from './loader-helpers'
-import { makeCodec } from './encrypt-codec.js'
+import { makeCodec } from './encrypt-codec'
 import type { AnyBlock, CarMakeable, AnyLink, AnyDecodedBlock, CryptoOpts } from './types'
 
 function makeEncDec(crypto: any, randomBytes: (size: number) => Uint8Array) {
   const codec = makeCodec(crypto, randomBytes)
 
-  const encrypt = async function* ({
+  const encrypt = async function * ({
     get,
     cids,
     hasher,
@@ -66,7 +66,7 @@ function makeEncDec(crypto: any, randomBytes: (size: number) => Uint8Array) {
     yield block
   }
 
-  const decrypt = async function* ({
+  const decrypt = async function * ({
     root,
     get,
     key,
@@ -120,7 +120,7 @@ function makeEncDec(crypto: any, randomBytes: (size: number) => Uint8Array) {
     for (const { cid } of nodes) {
       if (!rootBlock.cid.equals(cid)) promises.push(getWithDecrypt(cid).then(unwrap))
     }
-    yield* promises
+    yield * promises
     yield unwrap(rootBlock)
   }
   return { encrypt, decrypt }
@@ -128,13 +128,13 @@ function makeEncDec(crypto: any, randomBytes: (size: number) => Uint8Array) {
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 const chunker = bf(30)
 
-function hexStringToUint8Array(hexString: string) {
+function hexStringToArrayBuffer(hexString: string): ArrayBuffer {
   const length = hexString.length
   const uint8Array = new Uint8Array(length / 2)
   for (let i = 0; i < length; i += 2) {
     uint8Array[i / 2] = parseInt(hexString.substring(i, i + 2), 16)
   }
-  return uint8Array
+  return uint8Array.buffer
 }
 
 export async function encryptedEncodeCarFile(
@@ -143,7 +143,7 @@ export async function encryptedEncodeCarFile(
   rootCid: AnyLink,
   t: CarMakeable
 ): Promise<AnyBlock> {
-  const encryptionKey = hexStringToUint8Array(key)
+  const encryptionKey = hexStringToArrayBuffer(key)
   const encryptedBlocks = new MemoryBlockstore()
   const cidsToEncrypt = [] as AnyLink[]
   for (const { cid } of t.entries()) {
@@ -184,8 +184,8 @@ async function decodeCarBlocks(
   get: (cid: any) => Promise<AnyBlock | undefined>,
   keyMaterial: string
 ): Promise<{ blocks: MemoryBlockstore; root: AnyLink }> {
-  const decryptionKeyUint8 = hexStringToUint8Array(keyMaterial)
-  const decryptionKey = decryptionKeyUint8.buffer.slice(0, decryptionKeyUint8.byteLength)
+  const decryptionKeyUint8 = hexStringToArrayBuffer(keyMaterial)
+  const decryptionKey = decryptionKeyUint8.slice(0, decryptionKeyUint8.byteLength)
 
   const decryptedBlocks = new MemoryBlockstore()
   let last: AnyBlock | null = null
